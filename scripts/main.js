@@ -38,198 +38,200 @@ styleElement.textContent = `
 document.head.appendChild(styleElement);
 
 function getIssueLink() {
-  return document.querySelector(
-    '[data-testid="issue.views.issue-base.foundation.breadcrumbs.current-issue.item"]',
-  );
-}
-
-function getIssueSummary() {
-  return document.querySelector(
-    '[data-testid="issue.views.issue-base.foundation.summary.heading"]',
-  )?.innerText;
-}
-
-function getActionsbar() {
-  return document.querySelector('button[aria-label="Actions"]')?.parentNode
-    .parentNode.parentNode.parentNode.parentNode;
-}
-
-function styleButton(button) {
-  button.classList.add('rich-link-button');
-}
-
-function findIssueWriteLink() {
-  const issueLink = getIssueLink();
-  if (!issueLink) {
-    console.log('Jira issue link not found');
-    return;
-  }
-
-  const issueKey = issueLink.textContent;
-
-  const issueSummary = getIssueSummary();
-
-  if (!issueSummary) {
-    console.log('Issue summary not found');
-    return;
-  }
-
-  writeLinkToClipboard(issueKey, issueSummary, issueLink.href);
-}
-
-function setUpCopyIssueLinkButton() {
-  if (document.getElementById('kju-copy-link')) {
-    return;
-  }
-  try {
-    const copyLinkButton = document.createElement('button');
-    copyLinkButton.id = 'kju-copy-link';
-    copyLinkButton.innerText = '🔗';
-    copyLinkButton.title = 'Copy formatted link';
-    styleButton(copyLinkButton);
-
-    copyLinkButton.addEventListener('click', findIssueWriteLink);
-
-    const actionsBar = getActionsbar();
-
-    if (actionsBar) {
-      actionsBar.prepend(copyLinkButton);
-    } else {
-      console.log('KJU: action bar not found');
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-function showStatusMessage(message, duration = 2000) {
-  const statusMessages = document.getElementsByClassName(
-    STATUS_MESSAGE_CLASS_NAME,
-  );
-  if (statusMessages) {
-    [...statusMessages].forEach((statusMessage) => statusMessage.remove());
-  }
-
-  const messageBar = document.createElement('div');
-  messageBar.innerText = message;
-  messageBar.classList.add(STATUS_MESSAGE_CLASS_NAME);
-  messageBar.style.opacity = '0';
-
-  document.body.append(messageBar);
-  // give DOM time to mount the element and apply styles to it
-  setTimeout(() => {
-    messageBar.style.opacity = '1';
-  }, 10); // 1 was not enough
-
-  setTimeout(() => {
-    messageBar.style.opacity = '0';
-    setTimeout(() => {
-      messageBar.remove();
-    }, FADE_IN_OUT_TIMEOUT);
-  }, duration);
-}
-
-function writeLinkToClipboard(prefix, name, href) {
-  try {
-    const plainText = `${prefix} ${name} ${href}`;
-    const formattedLink = `<a href="${href}">${prefix} ${name}</a>`;
-
-    const plainTextBlob = new Blob([plainText], { type: 'text/plain' });
-    const htmlBlob = new Blob([formattedLink], { type: 'text/html' });
-
-    const clipboardItem = new ClipboardItem({
-      'text/html': htmlBlob,
-      'text/plain': plainTextBlob,
-    });
-    navigator.clipboard
-      .write([clipboardItem])
-      .then(() => {
-        showStatusMessage('Jira link copied!');
-      })
-      .catch((err) => {
-        console.error('Failed to copy Jira link: ', err);
-      });
-  } catch (error) {
-    window.alert(error);
-  }
-}
-
-function writeGitCommandToClipboard(gitCommandText) {
-  const plainTextBlob = new Blob([gitCommandText], { type: 'text/plain' });
-
-  const clipboardItem = new ClipboardItem({
-    'text/plain': plainTextBlob,
-  });
-
-  navigator.clipboard
-    .write([clipboardItem])
-    .then(() => {
-      showStatusMessage('Git command copied!');
-    })
-    .catch((error) =>
-      console.error('Failed to put git command onto the clipboard', error),
+    return document.querySelector(
+        '[data-testid="issue.views.issue-base.foundation.breadcrumbs.current-issue.item"]',
     );
 }
 
+function getIssueSummary() {
+    return document.querySelector(
+        '[data-testid="issue.views.issue-base.foundation.summary.heading"]',
+    )?.innerText;
+}
+
+function getActionsBar() {
+    return document.querySelector('div[aria-label="Action items"] > div') ??
+        // legacy
+        document.querySelector('button[aria-label="Actions"]')?.parentNode
+            .parentNode.parentNode.parentNode.parentNode;
+}
+
+function styleButton(button) {
+    button.classList.add('rich-link-button');
+}
+
+function findIssueWriteLink() {
+    const issueLink = getIssueLink();
+    if (!issueLink) {
+        console.log('Jira issue link not found');
+        return;
+    }
+
+    const issueKey = issueLink.textContent;
+
+    const issueSummary = getIssueSummary();
+
+    if (!issueSummary) {
+        console.log('Issue summary not found');
+        return;
+    }
+
+    writeLinkToClipboard(issueKey, issueSummary, issueLink.href);
+}
+
+function setUpCopyIssueLinkButton() {
+    if (document.getElementById('kju-copy-link')) {
+        return;
+    }
+    try {
+        const copyLinkButton = document.createElement('button');
+        copyLinkButton.id = 'kju-copy-link';
+        copyLinkButton.innerText = '🔗';
+        copyLinkButton.title = 'Copy formatted link';
+        styleButton(copyLinkButton);
+
+        copyLinkButton.addEventListener('click', findIssueWriteLink);
+
+        const actionsBar = getActionsBar();
+
+        if (actionsBar) {
+            actionsBar.prepend(copyLinkButton);
+        } else {
+            console.log('KJU: action bar not found!');
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function showStatusMessage(message, duration = 2000) {
+    const statusMessages = document.getElementsByClassName(
+        STATUS_MESSAGE_CLASS_NAME,
+    );
+    if (statusMessages) {
+        [...statusMessages].forEach((statusMessage) => statusMessage.remove());
+    }
+
+    const messageBar = document.createElement('div');
+    messageBar.innerText = message;
+    messageBar.classList.add(STATUS_MESSAGE_CLASS_NAME);
+    messageBar.style.opacity = '0';
+
+    document.body.append(messageBar);
+    // give DOM time to mount the element and apply styles to it
+    setTimeout(() => {
+        messageBar.style.opacity = '1';
+    }, 10); // 1 was not enough
+
+    setTimeout(() => {
+        messageBar.style.opacity = '0';
+        setTimeout(() => {
+            messageBar.remove();
+        }, FADE_IN_OUT_TIMEOUT);
+    }, duration);
+}
+
+function writeLinkToClipboard(prefix, name, href) {
+    try {
+        const plainText = `${prefix} ${name} ${href}`;
+        const formattedLink = `<a href="${href}">${prefix} ${name}</a>`;
+
+        const plainTextBlob = new Blob([plainText], {type: 'text/plain'});
+        const htmlBlob = new Blob([formattedLink], {type: 'text/html'});
+
+        const clipboardItem = new ClipboardItem({
+            'text/html': htmlBlob,
+            'text/plain': plainTextBlob,
+        });
+        navigator.clipboard
+            .write([clipboardItem])
+            .then(() => {
+                showStatusMessage('Jira link copied!');
+            })
+            .catch((err) => {
+                console.error('Failed to copy Jira link: ', err);
+            });
+    } catch (error) {
+        window.alert(error);
+    }
+}
+
+function writeGitCommandToClipboard(gitCommandText) {
+    const plainTextBlob = new Blob([gitCommandText], {type: 'text/plain'});
+
+    const clipboardItem = new ClipboardItem({
+        'text/plain': plainTextBlob,
+    });
+
+    navigator.clipboard
+        .write([clipboardItem])
+        .then(() => {
+            showStatusMessage('Git command copied!');
+        })
+        .catch((error) =>
+            console.error('Failed to put git command onto the clipboard', error),
+        );
+}
+
 function findIssueWriteGitCommand() {
-  const issueLink = getIssueLink();
-  if (!issueLink) {
-    console.log('Jira issue link not found');
-    return;
-  }
+    const issueLink = getIssueLink();
+    if (!issueLink) {
+        console.log('Jira issue link not found');
+        return;
+    }
 
-  const issueKey = issueLink.textContent;
+    const issueKey = issueLink.textContent;
 
-  const issueSummary = getIssueSummary();
-  if (!issueSummary) {
-    console.log('Issue summary not found');
-    return;
-  }
+    const issueSummary = getIssueSummary();
+    if (!issueSummary) {
+        console.log('Issue summary not found');
+        return;
+    }
 
-  const typeImage = document.querySelector(
-    '[data-testid="issue.views.issue-base.foundation.breadcrumbs.breadcrumb-current-issue-container"] img',
-  );
-  if (!typeImage) {
-    console.log('KJU: issue type image is not found');
-    return;
-  }
+    const typeImage = document.querySelector(
+        '[data-testid="issue.views.issue-base.foundation.breadcrumbs.breadcrumb-current-issue-container"] img',
+    );
+    if (!typeImage) {
+        console.log('KJU: issue type image is not found');
+        return;
+    }
 
-  const isBug = /\bbug\b/i.test(typeImage.alt);
+    const isBug = /\bbug\b/i.test(typeImage.alt);
 
-  const sanitizedSummary = issueSummary
-    .replace(/\W+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .replace(/^UI-/, '')
-    .replace(/^BE-/, '')
-    .replace(/^QA-/, '');
+    const sanitizedSummary = issueSummary
+        .replace(/\W+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        .replace(/^UI-/, '')
+        .replace(/^BE-/, '')
+        .replace(/^QA-/, '');
 
-  const gitCommand = `git checkout -b ${isBug ? 'bugfix' : 'feature'}/${issueKey}-${sanitizedSummary}`;
+    const gitCommand = `git checkout -b ${isBug ? 'bugfix' : 'feature'}/${issueKey}-${sanitizedSummary}`;
 
-  writeGitCommandToClipboard(gitCommand);
+    writeGitCommandToClipboard(gitCommand);
 }
 
 function setupCopyBranchCommandButton() {
-  if (document.getElementById('kju-copy-git')) {
-    return;
-  }
-  const copyGitCommandButton = document.createElement('button');
-  copyGitCommandButton.id = 'kju-copy-git';
-  copyGitCommandButton.innerText = 'ᛘ';
-  copyGitCommandButton.title = 'Copy Git command to create a prefixed branch';
-  styleButton(copyGitCommandButton);
-  copyGitCommandButton.addEventListener('click', findIssueWriteGitCommand);
+    if (document.getElementById('kju-copy-git')) {
+        return;
+    }
+    const copyGitCommandButton = document.createElement('button');
+    copyGitCommandButton.id = 'kju-copy-git';
+    copyGitCommandButton.innerText = 'ᛘ';
+    copyGitCommandButton.title = 'Copy Git command to create a prefixed branch';
+    styleButton(copyGitCommandButton);
+    copyGitCommandButton.addEventListener('click', findIssueWriteGitCommand);
 
-  const actionsBar = getActionsbar();
-  if (actionsBar) {
-    actionsBar.prepend(copyGitCommandButton);
-  } else {
-    console.log('KJU: Jira actions bar not found');
-  }
+    const actionsBar = getActionsBar();
+    if (actionsBar) {
+        actionsBar.prepend(copyGitCommandButton);
+    } else {
+        console.log('KJU: Jira actions bar not found!');
+    }
 }
 
 setInterval(() => {
-  setupCopyBranchCommandButton();
-  setUpCopyIssueLinkButton();
+    setupCopyBranchCommandButton();
+    setUpCopyIssueLinkButton();
 }, 2000);
 
 setupCopyBranchCommandButton();

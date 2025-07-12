@@ -2,7 +2,7 @@
   "name": "Karabin Jira Utils",
   "description": "Adds two buttons to Jira: Copy Issue Link and Copy Git Command for creating a branch. Branch get prepended bugfix/ (bugs) or feature/ (stories)",
   "author": "Piotr Kalachyn",
-  "version": "2.0",
+  "version": "2.1",
   "manifest_version": 3,
   "icons": {
     "48": "icon.png"
